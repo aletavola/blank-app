@@ -10,9 +10,17 @@ from statsmodels.tsa.arima.model import ARIMA
 # Inicializar a API do CoinGecko
 cg = CoinGeckoAPI()
 
-# Configurar o título da aplicação
+# Configurar o título e a explicação inicial
 st.title("Análise de Criptomoedas")
-st.subheader("Selecione uma criptomoeda para visualizar o gráfico e as previsões")
+st.markdown("""
+    ### Bem-vindo!
+    Este aplicativo exibe a análise gráfica de criptomoedas populares, incluindo:
+    - **Gráfico de Candlesticks:** Mostra as últimas 4 horas de variações de preço.
+    - **Índice de Força Relativa (RSI):** Indica sobrecompra (RSI > 70) ou sobrevenda (RSI < 30).
+    - **Previsão de Preços:** Calculada para as próximas 2 horas com base nos últimos 24 horas de dados.
+
+    Use o menu abaixo para selecionar uma criptomoeda.
+""")
 
 # Lista de criptomoedas disponíveis
 cryptocurrencies = {
@@ -76,6 +84,9 @@ loss = (-delta.where(delta < 0, 0)).rolling(window=window_length).mean()
 rs = gain / loss
 ohlc["rsi"] = 100 - (100 / (1 + rs))
 
+# Valor mais recente do RSI
+latest_rsi = ohlc["rsi"].iloc[-1]
+
 # Treinar o modelo de previsão com 24 horas de dados
 training_data = ohlc.iloc[-96:]  # Últimas 96 intervalos = 24 horas
 model = ARIMA(training_data["close"], order=(3, 1, 1))
@@ -121,6 +132,16 @@ ax_rsi.set_ylabel("RSI")
 ax_rsi.legend()
 ax_rsi.grid()
 
+# Adicionar o valor mais recente do RSI no gráfico
+ax_rsi.text(
+    0.02, 0.95,  # Posição no canto superior esquerdo
+    f"RSI Atual: {latest_rsi:.2f}",
+    transform=ax_rsi.transAxes,
+    fontsize=12,
+    color="blue",
+    bbox=dict(facecolor="white", alpha=0.7)
+)
+
 # Gráfico 3: Previsão
 ax_combined.plot(ohlc.iloc[-16:].index, ohlc["close"].iloc[-16:], label="Últimas 4 Horas", color="blue")
 ax_combined.plot(future_df.index, future_df["predicted_close"], label="Previsão (Próximas 2 Horas)", color="red", linestyle="--")
@@ -145,3 +166,10 @@ else:
     recommendation = "Recomendação: RETER"
 
 st.markdown(f"### {recommendation}")
+
+# Footer
+st.markdown("""
+---
+**Por Alexandre Tavola - 2024**  
+[http://www.alexandretavola.com](http://www.alexandretavola.com)
+""")
