@@ -1,1 +1,7 @@
 streamlit
+pycoingecko
+pandas
+numpy
+matplotlib
+mplfinance
+statsmodels
